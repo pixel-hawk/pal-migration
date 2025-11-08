@@ -3,8 +3,7 @@
 // Global State
 let uploadedFile = null;
 let allPlayers = [];
-let sourceSelectedGuid = null;
-let targetSelectedGuid = null;
+let mappings = []; // Array of {source: player, target: player} objects
 
 // DOM Elements
 const fileInput = document.getElementById('fileInput');
@@ -13,12 +12,10 @@ const fileInfo = document.getElementById('fileInfo');
 const fileName = document.getElementById('fileName');
 const fileSize = document.getElementById('fileSize');
 const playersSection = document.getElementById('playersSection');
-const sourceTableBody = document.getElementById('sourceTableBody');
-const targetTableBody = document.getElementById('targetTableBody');
-const sourceSearch = document.getElementById('sourceSearch');
-const targetSearch = document.getElementById('targetSearch');
-const sourceSelection = document.getElementById('sourceSelection');
-const targetSelection = document.getElementById('targetSelection');
+const playersTableBody = document.getElementById('playersTableBody');
+const playerSearch = document.getElementById('playerSearch');
+const mappingsList = document.getElementById('mappingsList');
+const mappingCount = document.getElementById('mappingCount');
 const migrateBtn = document.getElementById('migrateBtn');
 const statusMessages = document.getElementById('statusMessages');
 const progressOverlay = document.getElementById('progressOverlay');
@@ -167,40 +164,76 @@ function populateTable(tableType, players) {
 
 // Player Selection
 function selectPlayer(tableType, player) {
+    const guid = player.guid;
+    
     if (tableType === 'source') {
-        sourceSelectedGuid = player.guid;
+        // Toggle selection
+        if (sourceSelectedGuids.has(guid)) {
+            sourceSelectedGuids.delete(guid);
+        } else {
+            sourceSelectedGuids.add(guid);
+        }
         
         // Update UI
         sourceTableBody.querySelectorAll('tr').forEach(tr => {
-            tr.classList.toggle('selected', tr.dataset.guid === player.guid);
+            tr.classList.toggle('selected', sourceSelectedGuids.has(tr.dataset.guid));
         });
         
-        sourceSelection.textContent = `Selected: ${player.name} (${player.guid})`;
-        sourceSelection.classList.add('selected');
+        // Update selection display
+        if (sourceSelectedGuids.size === 0) {
+            sourceSelection.textContent = 'No players selected';
+            sourceSelection.classList.remove('selected');
+        } else if (sourceSelectedGuids.size === 1) {
+            const selected = allPlayers.find(p => p.guid === Array.from(sourceSelectedGuids)[0]);
+            sourceSelection.textContent = `Selected: ${selected.name}`;
+            sourceSelection.classList.add('selected');
+        } else {
+            sourceSelection.textContent = `Selected: ${sourceSelectedGuids.size} players`;
+            sourceSelection.classList.add('selected');
+        }
     } else {
-        targetSelectedGuid = player.guid;
+        // Toggle selection
+        if (targetSelectedGuids.has(guid)) {
+            targetSelectedGuids.delete(guid);
+        } else {
+            targetSelectedGuids.add(guid);
+        }
         
         // Update UI
         targetTableBody.querySelectorAll('tr').forEach(tr => {
-            tr.classList.toggle('selected', tr.dataset.guid === player.guid);
+            tr.classList.toggle('selected', targetSelectedGuids.has(tr.dataset.guid));
         });
         
-        targetSelection.textContent = `Selected: ${player.name} (${player.guid})`;
-        targetSelection.classList.add('selected');
+        // Update selection display
+        if (targetSelectedGuids.size === 0) {
+            targetSelection.textContent = 'No players selected';
+            targetSelection.classList.remove('selected');
+        } else if (targetSelectedGuids.size === 1) {
+            const selected = allPlayers.find(p => p.guid === Array.from(targetSelectedGuids)[0]);
+            targetSelection.textContent = `Selected: ${selected.name}`;
+            targetSelection.classList.add('selected');
+        } else {
+            targetSelection.textContent = `Selected: ${targetSelectedGuids.size} players`;
+            targetSelection.classList.add('selected');
+        }
     }
     
-    // Enable migrate button if both selected and different
+    // Enable migrate button if valid selections
     updateMigrateButton();
 }
 
 function updateMigrateButton() {
-    const bothSelected = sourceSelectedGuid && targetSelectedGuid;
-    const different = sourceSelectedGuid !== targetSelectedGuid;
+    // Valid if: same number of selections on both sides, at least 1, and no overlap
+    const sameCount = sourceSelectedGuids.size === targetSelectedGuids.size;
+    const hasSelections = sourceSelectedGuids.size > 0;
+    const overlap = Array.from(sourceSelectedGuids).some(g => targetSelectedGuids.has(g));
     
-    migrateBtn.disabled = !(bothSelected && different);
+    migrateBtn.disabled = !(sameCount && hasSelections && !overlap);
     
-    if (bothSelected && !different) {
-        showToast('warning', 'Please select two different players');
+    if (!sameCount && hasSelections) {
+        showToast('warning', 'Select the same number of players on both sides');
+    } else if (overlap) {
+        showToast('warning', 'A player cannot be both source and target');
     }
 }
 
@@ -237,22 +270,30 @@ function sortTable(tableType, column) {
 
 // Migration
 async function performMigration() {
-    if (!sourceSelectedGuid || !targetSelectedGuid) {
-        showToast('error', 'Please select both source and target players');
+    if (sourceSelectedGuids.size === 0 || targetSelectedGuids.size === 0) {
+        showToast('error', 'Please select source and target players');
         return;
     }
     
-    if (sourceSelectedGuid === targetSelectedGuid) {
-        showToast('error', 'Source and target must be different');
+    if (sourceSelectedGuids.size !== targetSelectedGuids.size) {
+        showToast('error', 'Must select same number of source and target players');
         return;
     }
     
-    showProgress('Performing GUID migration... This may take a few seconds.');
+    // Create mappings array
+    const sourceArray = Array.from(sourceSelectedGuids);
+    const targetArray = Array.from(targetSelectedGuids);
+    const mappings = sourceArray.map((source, idx) => ({
+        source_guid: source,
+        target_guid: targetArray[idx]
+    }));
+    
+    const count = mappings.length;
+    showProgress(`Performing ${count} GUID migration${count > 1 ? 's' : ''}... This may take a few seconds.`);
     
     const formData = new FormData();
     formData.append('file', uploadedFile);
-    formData.append('source_guid', sourceSelectedGuid);
-    formData.append('target_guid', targetSelectedGuid);
+    formData.append('mappings_json', JSON.stringify(mappings));
     
     try {
         const response = await fetch('/migrate', {

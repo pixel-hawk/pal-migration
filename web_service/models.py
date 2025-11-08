@@ -63,8 +63,8 @@ class SaveArchive(BaseModel):
     )
 
 
-class MigrationRequest(BaseModel):
-    """Request payload for GUID migration."""
+class GuidMapping(BaseModel):
+    """Single GUID mapping pair."""
     
     source_guid: str = Field(
         ...,
@@ -82,6 +82,37 @@ class MigrationRequest(BaseModel):
         """Ensure source and target GUIDs are different."""
         if self.source_guid.upper() == self.target_guid.upper():
             raise ValueError('Source and target GUIDs must be different')
+        return self
+
+
+class MigrationRequest(BaseModel):
+    """Request payload for GUID migration (supports batch)."""
+    
+    mappings: List[GuidMapping] = Field(
+        ...,
+        min_length=1,
+        description="List of GUID mappings to perform"
+    )
+    
+    @model_validator(mode='after')
+    def validate_no_conflicts(self):
+        """Ensure no GUID is used as both source and target, and no duplicates."""
+        sources = [m.source_guid.upper() for m in self.mappings]
+        targets = [m.target_guid.upper() for m in self.mappings]
+        
+        # Check for duplicate sources
+        if len(sources) != len(set(sources)):
+            raise ValueError('Each source GUID can only be used once')
+        
+        # Check for duplicate targets
+        if len(targets) != len(set(targets)):
+            raise ValueError('Each target GUID can only be used once')
+        
+        # Check for conflicts (GUID used as both source and target)
+        conflicts = set(sources) & set(targets)
+        if conflicts:
+            raise ValueError(f'GUIDs cannot be both source and target: {conflicts}')
+        
         return self
 
 

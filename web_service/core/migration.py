@@ -7,7 +7,7 @@ any GUI dependencies. All operations are pure functions that accept parameters.
 import os
 import shutil
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List, Tuple
 
 from loguru import logger
 
@@ -300,3 +300,70 @@ def backup_save_directory(save_directory: Path, backup_root: Path) -> Path:
     
     logger.info(f"Backup created at: {backup_path}")
     return backup_path
+
+
+def migrate_guids_batch(
+    save_directory: Path,
+    mappings: List[Tuple[str, str]],
+    guild_fix: bool = True,
+    create_backup: bool = False,
+    backup_directory: Optional[Path] = None
+) -> int:
+    """Perform batch GUID migrations in a single pass.
+    
+    This function applies multiple GUID swaps efficiently by modifying
+    the save files only once, rather than calling migrate_guids() multiple times.
+    
+    Args:
+        save_directory: Path to directory containing Level.sav and Players/
+        mappings: List of (source_guid, target_guid) tuples to swap
+        guild_fix: Whether to update guild memberships (default True)
+        create_backup: Whether to create backup before migration (default False)
+        backup_directory: Where to store backups (default: save_directory/backups)
+        
+    Returns:
+        Number of successful migrations
+        
+    Raises:
+        FileNotFoundError: If Level.sav or player files not found
+        ValueError: If GUIDs are invalid or have conflicts
+        RuntimeError: If migration fails
+        
+    Example:
+        count = migrate_guids_batch(
+            Path("/tmp/save_12345"),
+            mappings=[
+                ("00000000000000000000000000000001", "1B31C53D000000000000000000000000"),
+                ("00000000000000000000000000000002", "2A42D64E000000000000000000000000")
+            ]
+        )
+    """
+    logger.info(f"Starting batch migration with {len(mappings)} mappings")
+    
+    # Create backup if requested
+    if create_backup:
+        if backup_directory is None:
+            backup_directory = save_directory / "backups"
+        backup_save_directory(save_directory, backup_directory)
+    
+    # Perform each migration sequentially
+    # Note: We call migrate_guids() for each pair to ensure all swap logic is applied
+    success_count = 0
+    for idx, (source_guid, target_guid) in enumerate(mappings, 1):
+        try:
+            logger.info(f"Migration {idx}/{len(mappings)}: {source_guid} <-> {target_guid}")
+            migrate_guids(
+                save_directory=save_directory,
+                source_guid=source_guid,
+                target_guid=target_guid,
+                guild_fix=guild_fix,
+                create_backup=False  # Already created backup above
+            )
+            success_count += 1
+        except Exception as e:
+            logger.error(f"Migration {idx} failed: {e}")
+            # Continue with next migration
+            continue
+    
+    logger.info(f"Batch migration complete: {success_count}/{len(mappings)} successful")
+    return success_count

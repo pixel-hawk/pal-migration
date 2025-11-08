@@ -33,55 +33,41 @@
 
         <!-- Player Selection Section -->
         <section class="players-section" id="playersSection" style="display: none;">
-            <h2>Step 2: Select Players to Migrate</h2>
+            <h2>Step 2: Create Player Mappings</h2>
+            <p class="hint">💡 Select source player, then select target player from dropdown to create a mapping pair.</p>
             
-            <div class="dual-panel">
-                <!-- Source Player Panel -->
-                <div class="player-panel">
-                    <h3>Source Player (From)</h3>
-                    <input type="text" id="sourceSearch" class="search-input" placeholder="Search by GUID, name, or guild...">
+            <!-- Player Selection Area -->
+            <div class="mapping-creator">
+                <div class="player-selector">
+                    <h3>Available Players</h3>
+                    <input type="text" id="playerSearch" class="search-input" placeholder="Search by GUID, name, or guild...">
                     <div class="table-container">
-                        <table id="sourceTable" class="player-table">
+                        <table id="playersTable" class="player-table">
                             <thead>
                                 <tr>
-                                    <th onclick="sortTable('source', 'guid')">GUID ↕</th>
-                                    <th onclick="sortTable('source', 'name')">Name ↕</th>
-                                    <th onclick="sortTable('source', 'guild')">Guild ID ↕</th>
+                                    <th onclick="sortTable('players', 'guid')">GUID ↕</th>
+                                    <th onclick="sortTable('players', 'name')">Name ↕</th>
+                                    <th onclick="sortTable('players', 'guild')">Guild ID ↕</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
-                            <tbody id="sourceTableBody"></tbody>
+                            <tbody id="playersTableBody"></tbody>
                         </table>
-                    </div>
-                    <div id="sourceSelection" class="selection-info">
-                        No player selected
                     </div>
                 </div>
+            </div>
 
-                <!-- Target Player Panel -->
-                <div class="player-panel">
-                    <h3>Target Player (To)</h3>
-                    <input type="text" id="targetSearch" class="search-input" placeholder="Search by GUID, name, or guild...">
-                    <div class="table-container">
-                        <table id="targetTable" class="player-table">
-                            <thead>
-                                <tr>
-                                    <th onclick="sortTable('target', 'guid')">GUID ↕</th>
-                                    <th onclick="sortTable('target', 'name')">Name ↕</th>
-                                    <th onclick="sortTable('target', 'guild')">Guild ID ↕</th>
-                                </tr>
-                            </thead>
-                            <tbody id="targetTableBody"></tbody>
-                        </table>
-                    </div>
-                    <div id="targetSelection" class="selection-info">
-                        No player selected
-                    </div>
+            <!-- Mappings List -->
+            <div class="mappings-section">
+                <h3>Migration Mappings</h3>
+                <div id="mappingsList" class="mappings-list">
+                    <div class="no-mappings">No mappings created yet. Click "Add Mapping" next to a player above.</div>
                 </div>
             </div>
 
             <div class="migrate-button-container">
                 <button id="migrateBtn" class="btn btn-success" disabled onclick="performMigration()">
-                    ✨ Migrate Players
+                    ✨ Migrate Players (<span id="mappingCount">0</span> mappings)
                 </button>
             </div>
         </section>
@@ -97,10 +83,11 @@
 
         <footer>
             <p>⚠️ <strong>Always backup your saves before migration!</strong></p>
-            <p>This tool swaps two player GUIDs in the save file. Make sure you select the correct players.</p>
+            <p>This tool swaps player GUIDs in the save file. Supports batch migration - select multiple players on each side (same count).</p>
+            <p><strong>Example:</strong> Select A & B (source) → C & D (target) to migrate A→C and B→D simultaneously.</p>
         </footer>
     </div>
 
-    <script src="/static/app.js"></script>
+    <script src="/static/app_new.js"></script>
 </body>
 </html>

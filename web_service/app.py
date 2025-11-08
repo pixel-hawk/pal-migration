@@ -248,48 +248,64 @@ async def analyze_save(file: UploadFile = File(...)):
 @app.post("/migrate")
 async def migrate_save(
     file: UploadFile = File(...),
-    source_guid: str = Form(...),
-    target_guid: str = Form(...)
+    mappings_json: str = Form(...)
 ):
-    """Perform GUID migration and return migrated save as downloadable zip.
+    """Perform batch GUID migration and return migrated save as downloadable zip.
     
     Steps:
     1. Validate and extract uploaded save (reuse analyze logic)
-    2. Validate source and target GUIDs exist
-    3. Perform migration
+    2. Validate all source and target GUIDs exist
+    3. Perform batch migration
     4. Create new zip archive
     5. Stream zip file to client
     6. Clean up temporary files
     
     Args:
         file: Uploaded save archive (.zip)
-        source_guid: Source player GUID (32 hex chars)
-        target_guid: Target player GUID (32 hex chars)
+        mappings_json: JSON array of {"source_guid": "...", "target_guid": "..."} objects
         
     Returns:
         StreamingResponse with migrated.zip
         
     Raises:
-        HTTPException 400: Invalid GUIDs or save structure
+        HTTPException 400: Invalid GUIDs, conflicts, or save structure
         HTTPException 404: GUID not found in save
         HTTPException 500: Migration failed
+        
+    Example mappings_json:
+        [{"source_guid": "00...01", "target_guid": "1B...00"},
+         {"source_guid": "00...02", "target_guid": "2A...00"}]
     """
-    logger.info(f"Migration request: {source_guid} -> {target_guid}")
+    import json
+    from web_service.models import MigrationRequest, GuidMapping
     
-    # Normalize GUIDs
-    source_guid = source_guid.upper().replace('-', '')
-    target_guid = target_guid.upper().replace('-', '')
-    
-    # Validate GUIDs are different
-    if source_guid == target_guid:
+    # Parse and validate mappings
+    try:
+        mappings_data = json.loads(mappings_json)
+        # Convert to GuidMapping objects for validation
+        guid_mappings = [GuidMapping(**m) for m in mappings_data]
+        # Validate with MigrationRequest
+        migration_req = MigrationRequest(mappings=guid_mappings)
+    except json.JSONDecodeError as e:
         raise HTTPException(
             status_code=400,
             detail=ErrorResponse(
-                error="DUPLICATE_GUID",
-                message="Source and target GUIDs must be different",
-                details={"source_guid": source_guid, "target_guid": target_guid}
+                error="INVALID_JSON",
+                message=f"Invalid JSON in mappings: {str(e)}",
+                details={}
             ).model_dump()
         )
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=ErrorResponse(
+                error="INVALID_MAPPINGS",
+                message=str(e),
+                details={}
+            ).model_dump()
+        )
+    
+    logger.info(f"Batch migration request with {len(guid_mappings)} mappings")
     
     # Create temp directory in the repo
     upload_id = str(uuid.uuid4())
@@ -333,39 +349,52 @@ async def migrate_save(
             if len(subdirs) == 1 and (subdirs[0] / "Level.sav").exists():
                 save_dir = subdirs[0]
         
-        # Validate GUIDs exist in save
+        # Validate all GUIDs exist in save
         players = extract_players(save_dir)
         player_guids = {p.guid for p in players}
         
-        if source_guid not in player_guids:
-            raise HTTPException(
-                status_code=404,
-                detail=ErrorResponse(
-                    error="GUID_NOT_FOUND",
-                    message=f"Source GUID {source_guid} not found in save file",
-                    details={"guid": source_guid, "available_guids": list(player_guids)}
-                ).model_dump()
-            )
+        # Check all mappings
+        for mapping in guid_mappings:
+            source = mapping.source_guid.upper().replace('-', '')
+            target = mapping.target_guid.upper().replace('-', '')
+            
+            if source not in player_guids:
+                raise HTTPException(
+                    status_code=404,
+                    detail=ErrorResponse(
+                        error="GUID_NOT_FOUND",
+                        message=f"Source GUID {source} not found in save file",
+                        details={"guid": source, "available_guids": list(player_guids)}
+                    ).model_dump()
+                )
+            
+            if target not in player_guids:
+                raise HTTPException(
+                    status_code=404,
+                    detail=ErrorResponse(
+                        error="GUID_NOT_FOUND",
+                        message=f"Target GUID {target} not found in save file",
+                        details={"guid": target, "available_guids": list(player_guids)}
+                    ).model_dump()
+                )
         
-        if target_guid not in player_guids:
-            raise HTTPException(
-                status_code=404,
-                detail=ErrorResponse(
-                    error="GUID_NOT_FOUND",
-                    message=f"Target GUID {target_guid} not found in save file",
-                    details={"guid": target_guid, "available_guids": list(player_guids)}
-                ).model_dump()
-            )
+        # Perform batch migration
+        from web_service.core.migration import migrate_guids_batch
         
-        # Perform migration
-        logger.info("Performing GUID migration...")
-        migrate_guids(
+        logger.info("Performing batch GUID migration...")
+        mappings_list = [
+            (m.source_guid.upper().replace('-', ''), m.target_guid.upper().replace('-', ''))
+            for m in guid_mappings
+        ]
+        
+        success_count = migrate_guids_batch(
             save_directory=save_dir,
-            source_guid=source_guid,
-            target_guid=target_guid,
+            mappings=mappings_list,
             guild_fix=True,
             create_backup=False  # No backup in temp directory
         )
+        
+        logger.info(f"Batch migration result: {success_count}/{len(mappings_list)} successful")
         
         # Create output zip
         logger.info("Creating migrated archive...")
