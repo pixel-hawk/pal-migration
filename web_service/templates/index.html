@@ -1,0 +1,72 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Palworld Save Migrator</title>
+    <style>
+      body{font-family: Arial, sans-serif; background:#222; color:#eee; padding:20px}
+      .card{background:#2b2b2b;padding:20px;border-radius:8px;max-width:900px;margin:20px auto}
+      label{display:block;margin:6px 0}
+      select, input[type=file], button{width:100%;padding:8px;margin:6px 0}
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h2>Palworld Save Migrator (Host &lt;-&gt; Player)</h2>
+      <p>Upload a .zip containing <code>Level.sav</code> and the <code>Players/</code> folder. The tool will analyze players, then perform the GUID migration and return a new zip.</p>
+
+      <h3>Step 1 — Analyze</h3>
+      <form id="analyzeForm">
+        <label>Upload save zip (Level.sav + Players/):</label>
+        <input id="fileInput" type="file" name="file" accept=".zip" />
+        <button type="button" onclick="analyze()">Analyze</button>
+      </form>
+
+      <div id="playersArea" style="display:none">
+        <h3>Detected players</h3>
+        <label>Source (old) player:</label>
+        <select id="oldSelect"></select>
+        <label>Target (new) player:</label>
+        <select id="newSelect"></select>
+        <button onclick="migrate()">Migrate & Download</button>
+      </div>
+
+      <div id="messages"></div>
+    </div>
+
+    <script>
+      let lastFile = null
+      async function analyze(){
+        const input = document.getElementById('fileInput')
+        if(!input.files.length){ alert('Select a .zip file first'); return }
+        lastFile = input.files[0]
+        const form = new FormData(); form.append('file', lastFile)
+        document.getElementById('messages').innerText = 'Analyzing...'
+        const resp = await fetch('/analyze', {method:'POST', body: form})
+        if(!resp.ok){ const txt=await resp.text(); document.getElementById('messages').innerText = 'Error: '+txt; return }
+        const j = await resp.json()
+        const players = j.players || []
+        const old = document.getElementById('oldSelect'); old.innerHTML=''
+        const ne = document.getElementById('newSelect'); ne.innerHTML=''
+        players.forEach(p=>{ const opt=document.createElement('option'); opt.value=p.split(' - ')[0]; opt.text=p; old.appendChild(opt); const opt2=opt.cloneNode(true); ne.appendChild(opt2) })
+        if(players.length){ document.getElementById('playersArea').style.display='block'; document.getElementById('messages').innerText='Choose source and target then click Migrate.' }
+        else document.getElementById('messages').innerText='No players found.'
+      }
+
+      async function migrate(){
+        if(!lastFile){ alert('No file uploaded'); return }
+        const old = document.getElementById('oldSelect').value
+        const ne = document.getElementById('newSelect').value
+        if(!old || !ne){ alert('Select both players'); return }
+        const form = new FormData(); form.append('file', lastFile); form.append('old_guid', old); form.append('new_guid', ne)
+        document.getElementById('messages').innerText = 'Migrating... this may take a few seconds.'
+        const resp = await fetch('/migrate', {method:'POST', body: form})
+        if(!resp.ok){ const txt=await resp.text(); document.getElementById('messages').innerText = 'Error: '+txt; return }
+        const blob = await resp.blob()
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a'); a.href=url; a.download='migrated.zip'; document.body.appendChild(a); a.click(); a.remove(); window.URL.revokeObjectURL(url)
+        document.getElementById('messages').innerText = 'Downloaded migrated.zip'
+      }
+    </script>
+  </body>
+</html>

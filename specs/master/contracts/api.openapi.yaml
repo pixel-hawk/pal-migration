@@ -1,0 +1,301 @@
+openapi: 3.1.0
+info:
+  title: Palworld Save Migration API
+  description: |
+    RESTful API for migrating Palworld save files between host/co-op and dedicated server modes.
+    Upload save archives, analyze players, perform GUID swaps, and download migrated saves.
+  version: 1.0.0
+  contact:
+    name: Palworld Save Tools
+    url: https://github.com/deafdudecomputers/PalworldSaveTools
+
+servers:
+  - url: http://127.0.0.1:8000
+    description: Local development server
+
+tags:
+  - name: UI
+    description: Browser interface endpoints
+  - name: Analysis
+    description: Save file analysis operations
+  - name: Migration
+    description: GUID migration operations
+
+paths:
+  /:
+    get:
+      summary: Serve main UI
+      description: Returns the HTML page with dual-panel player selection interface
+      tags: [UI]
+      responses:
+        '200':
+          description: HTML page rendered successfully
+          content:
+            text/html:
+              schema:
+                type: string
+
+  /analyze:
+    post:
+      summary: Analyze uploaded save archive
+      description: |
+        Upload a zip file containing Level.sav and Players/ folder.
+        Returns list of players extracted from the save with their GUIDs, names, and guild IDs.
+      tags: [Analysis]
+      operationId: analyzeSaveArchive
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Zip archive containing Level.sav and Players/ folder
+                  maxLength: 524288000  # 500MB
+      responses:
+        '200':
+          description: Analysis completed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - players
+                  - archive_id
+                properties:
+                  players:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Player'
+                  archive_id:
+                    type: string
+                    description: Unique identifier for this uploaded archive (for subsequent migration)
+                    example: "abc123def456"
+              example:
+                players:
+                  - guid: "00000000000000000000000000000001"
+                    name: "Tamil Gamers Tech"
+                    guild_id: "99e60934-44f3-e515-2001-e7b71"
+                  - guid: "1b31c53d000000000000000000000000"
+                    name: "Raptor"
+                    guild_id: "99e60934-44f3-e515-2001-e7b71"
+                archive_id: "abc123def456"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /migrate:
+    post:
+      summary: Perform GUID migration
+      description: |
+        Execute GUID swap between source and target players in the previously uploaded save.
+        Returns a zip file with the migrated save ready for download.
+      tags: [Migration]
+      operationId: migrateGuids
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+                - source_guid
+                - target_guid
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Same zip archive from /analyze step
+                source_guid:
+                  type: string
+                  pattern: '^[0-9A-Fa-f]{32}$'
+                  description: Source player GUID (32 hex characters)
+                  example: "00000000000000000000000000000001"
+                target_guid:
+                  type: string
+                  pattern: '^[0-9A-Fa-f]{32}$'
+                  description: Target player GUID (32 hex characters)
+                  example: "1b31c53d000000000000000000000000"
+      responses:
+        '200':
+          description: Migration completed successfully
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+                example: 'attachment; filename="migrated.zip"'
+            Content-Length:
+              schema:
+                type: integer
+                example: 52428800
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: GUID not found in save
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "GUID_NOT_FOUND"
+                message: "Source GUID 12345... does not exist in the uploaded save"
+                details:
+                  missing_guid: "12345..."
+                  available_guids: ["00000...", "1b31c..."]
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /health:
+    get:
+      summary: Health check
+      description: Returns service health status
+      tags: [UI]
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "ok"
+                  version:
+                    type: string
+                    example: "1.0.0"
+
+components:
+  schemas:
+    Player:
+      type: object
+      required:
+        - guid
+        - name
+        - guild_id
+      properties:
+        guid:
+          type: string
+          pattern: '^[0-9A-Fa-f]{32}$'
+          description: Player GUID (32 hexadecimal characters, no dashes)
+          example: "00000000000000000000000000000001"
+        name:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: Player display name
+          example: "Tamil Gamers Tech"
+        guild_id:
+          type: string
+          description: Guild instance ID (UUID format)
+          example: "99e60934-44f3-e515-2001-e7b71"
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error code identifier
+          enum:
+            - INVALID_STRUCTURE
+            - FILE_TOO_LARGE
+            - INVALID_GUID
+            - DUPLICATE_GUID
+            - GUID_NOT_FOUND
+            - CORRUPT_SAVE
+            - MIGRATION_FAILED
+            - INTERNAL_ERROR
+          example: "INVALID_STRUCTURE"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Level.sav not found in uploaded archive"
+        details:
+          type: object
+          additionalProperties: true
+          description: Additional error context
+          example:
+            files_found: ["Players/abc.sav", "LevelMeta.sav"]
+            expected: "Level.sav"
+
+  responses:
+    BadRequest:
+      description: Invalid request (structure, duplicate GUIDs, etc.)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            invalidStructure:
+              value:
+                error: "INVALID_STRUCTURE"
+                message: "Level.sav not found in uploaded archive"
+                details:
+                  files_found: ["LevelMeta.sav"]
+            duplicateGuid:
+              value:
+                error: "DUPLICATE_GUID"
+                message: "Source and target GUIDs must be different"
+
+    PayloadTooLarge:
+      description: Uploaded file exceeds 500MB limit
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: "FILE_TOO_LARGE"
+            message: "Uploaded file exceeds maximum size of 500MB"
+            details:
+              uploaded_size: 600000000
+              max_size: 524288000
+
+    ValidationError:
+      description: Request validation failed (invalid GUID format, missing fields, etc.)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: "INVALID_GUID"
+            message: "GUID must be 32 hexadecimal characters"
+            details:
+              field: "source_guid"
+              provided: "invalid-guid"
+
+    InternalError:
+      description: Server encountered an unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: "INTERNAL_ERROR"
+            message: "An unexpected error occurred during migration"
+            details:
+              trace_id: "abc-123-def"
+
+  securitySchemes: {}
+
+security: []
