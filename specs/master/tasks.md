@@ -49,19 +49,19 @@ Tasks are organized by **User Story** to enable independent, incremental develop
 
 **Tasks**:
 
-- [ ] T001 Create `web_service/` directory structure per implementation plan
-- [ ] T002 Create `web_service/__init__.py` (empty marker file)
-- [ ] T003 Create `web_service/core/` directory for migrated logic
-- [ ] T004 Create `web_service/core/__init__.py` (empty marker file)
-- [ ] T005 Create `web_service/static/` directory for CSS/JS
-- [ ] T006 Create `web_service/templates/` directory for HTML
-- [ ] T007 Create `web_service/tests/` directory
-- [ ] T008 Create `web_service/tests/fixtures/` directory for test data
-- [ ] T009 [P] Create root `pyproject.toml` with UV dependencies (fastapi, uvicorn, python-multipart, jinja2, loguru)
-- [ ] T010 [P] Add dev dependencies to pyproject.toml (pytest, httpx, pytest-asyncio, ruff)
-- [ ] T011 Run `uv sync` to install all dependencies and create uv.lock
-- [ ] T012 [P] Create `.gitignore` with Python/UV exclusions (__pycache__, .venv, *.pyc, uv.lock, temp files)
-- [ ] T013 [P] Create `web_service/tests/conftest.py` with pytest fixtures (test_client, sample_save_data)
+- [X] T001 Create `web_service/` directory structure per implementation plan
+- [X] T002 Create `web_service/__init__.py` (empty marker file)
+- [X] T003 Create `web_service/core/` directory for migrated logic
+- [X] T004 Create `web_service/core/__init__.py` (empty marker file)
+- [X] T005 Create `web_service/static/` directory for CSS/JS
+- [X] T006 Create `web_service/templates/` directory for HTML
+- [X] T007 Create `web_service/tests/` directory
+- [X] T008 Create `web_service/tests/fixtures/` directory for test data
+- [X] T009 [P] Create root `pyproject.toml` with UV dependencies (fastapi, uvicorn, python-multipart, jinja2, loguru)
+- [X] T010 [P] Add dev dependencies to pyproject.toml (pytest, httpx, pytest-asyncio, ruff)
+- [X] T011 Run `uv sync` to install all dependencies and create uv.lock
+- [X] T012 [P] Create `.gitignore` with Python/UV exclusions (__pycache__, .venv, *.pyc, uv.lock, temp files)
+- [X] T013 [P] Create `web_service/tests/conftest.py` with pytest fixtures (test_client, sample_save_data)
 
 **Duration**: ~30 minutes
 
@@ -73,24 +73,24 @@ Tasks are organized by **User Story** to enable independent, incremental develop
 
 **Tasks**:
 
-- [ ] T014 Copy `gui_palworld_tool/Assets/palworld_save_tools/` directory to `web_service/core/palworld_save_tools/`
-- [ ] T015 Update imports in `web_service/core/palworld_save_tools/__init__.py` to use absolute imports
-- [ ] T016 Update imports in `web_service/core/palworld_save_tools/archive.py`
-- [ ] T017 Update imports in `web_service/core/palworld_save_tools/gvas.py`
-- [ ] T018 Update imports in `web_service/core/palworld_save_tools/json_tools.py`
-- [ ] T019 Update imports in `web_service/core/palworld_save_tools/palsav.py`
-- [ ] T020 Update imports in `web_service/core/palworld_save_tools/paltypes.py`
-- [ ] T021 [P] Copy `commands/` subdirectory and update imports
-- [ ] T022 [P] Copy `compressor/` subdirectory and update imports
-- [ ] T023 [P] Copy `rawdata/` subdirectory (all modules) and update imports
-- [ ] T024 Create `web_service/core/save_parser.py` with `extract_players(level_sav_path)` function (refactored from fix_host_save.py::populate_player_lists)
-- [ ] T024a Create `web_service/core/security.py` with secure zip validation and extraction functions
-- [ ] T024b Add `validate_zip_safety()` to security.py - check path traversal, absolute paths, file types
-- [ ] T024c Add `safe_extract_zip()` to security.py - extract with security checks, return extracted path
-- [ ] T024d Add `cleanup_temp_directory()` to security.py - securely delete temp files after use
-- [ ] T025 Create `web_service/core/migration.py` with `migrate_guids()` function (refactored from fix_host_save.py::fix_save, NO tkinter)
-- [ ] T026 Add `copy_dps_file()` helper to migration.py (from fix_host_save.py)
-- [ ] T027 Add `deep_swap_ownership()` helper to migration.py (from fix_host_save.py)
+- [X] T014 Copy `gui_palworld_tool/Assets/palworld_save_tools/` directory to `web_service/core/palworld_save_tools/`
+- [X] T015 Update imports in `web_service/core/palworld_save_tools/__init__.py` to use absolute imports
+- [X] T016 Update imports in `web_service/core/palworld_save_tools/archive.py`
+- [X] T017 Update imports in `web_service/core/palworld_save_tools/gvas.py`
+- [X] T018 Update imports in `web_service/core/palworld_save_tools/json_tools.py`
+- [X] T019 Update imports in `web_service/core/palworld_save_tools/palsav.py`
+- [X] T020 Update imports in `web_service/core/palworld_save_tools/paltypes.py`
+- [X] T021 [P] Copy `commands/` subdirectory and update imports
+- [X] T022 [P] Copy `compressor/` subdirectory and update imports
+- [X] T023 [P] Copy `rawdata/` subdirectory (all modules) and update imports
+- [X] T024 Create `web_service/core/save_parser.py` with `extract_players(level_sav_path)` function (refactored from fix_host_save.py::populate_player_lists)
+- [X] T024a Create `web_service/core/security.py` with secure zip validation and extraction functions
+- [X] T024b Add `validate_zip_safety()` to security.py - check path traversal, absolute paths, file types
+- [X] T024c Add `safe_extract_zip()` to security.py - extract with security checks, return extracted path
+- [X] T024d Add `cleanup_temp_directory()` to security.py - securely delete temp files after use
+- [X] T025 Create `web_service/core/migration.py` with `migrate_guids()` function (refactored from fix_host_save.py::fix_save, NO tkinter)
+- [X] T026 Add `copy_dps_file()` helper to migration.py (from fix_host_save.py)
+- [X] T027 Add `deep_swap_ownership()` helper to migration.py (from fix_host_save.py)
 - [ ] T028 Test basic save parsing: create `web_service/tests/test_save_parser.py` with test for extract_players()
 - [ ] T029 Test migration logic: create `web_service/tests/test_migration.py` with test for migrate_guids()
 
@@ -113,25 +113,25 @@ Tasks are organized by **User Story** to enable independent, incremental develop
 
 **Tasks**:
 
-- [ ] T030 [US1] Create `web_service/models.py` with `Player` Pydantic model per data-model.md
-- [ ] T031 [P] [US1] Add `ErrorResponse` Pydantic model to models.py
-- [ ] T032 [US1] Create `web_service/app.py` with FastAPI app initialization
-- [ ] T033 [US1] Add CORS middleware to app.py (allow localhost only)
-- [ ] T034 [US1] Add Jinja2Templates configuration pointing to templates/
-- [ ] T035 [US1] Add StaticFiles mount for /static route
-- [ ] T036 [US1] Implement `POST /analyze` endpoint in app.py - accept UploadFile, validate zip structure
-- [ ] T037 [US1] Add file size validation (max 500MB) using FastAPI dependencies
-- [ ] T037a [US1] Add SECURITY: Validate zip file before extraction - check for path traversal attacks (../ in entry names)
-- [ ] T037b [US1] Add SECURITY: Reject zip entries with absolute paths (e.g., /etc/passwd, C:\Windows)
-- [ ] T037c [US1] Add SECURITY: Scan zip for dangerous file types (no .exe, .dll, .so, .sh, .bat, .ps1)
-- [ ] T037d [US1] Add SECURITY: Limit total extracted size (prevent zip bombs - max 1GB extracted)
-- [ ] T037e [US1] Add SECURITY: Validate zip entry count (max 1000 files to prevent resource exhaustion)
-- [ ] T038 [US1] Add zip structure validation: check for Level.sav at root or one level deep
-- [ ] T039 [US1] Add Players/ folder validation: must exist with at least one .sav file
-- [ ] T040 [US1] Return ErrorResponse with INVALID_STRUCTURE if validation fails
-- [ ] T041 [US1] Create minimal `web_service/templates/index.html` with file upload form
-- [ ] T042 [P] [US1] Add basic CSS in `web_service/static/styles.css` (dark theme, form styling)
-- [ ] T043 [US1] Add JavaScript in `web_service/static/app.js` for file upload handling (fetch to /analyze)
+- [X] T030 [US1] Create `web_service/models.py` with `Player` Pydantic model per data-model.md
+- [X] T031 [P] [US1] Add `ErrorResponse` Pydantic model to models.py
+- [X] T032 [US1] Create `web_service/app.py` with FastAPI app initialization
+- [X] T033 [US1] Add CORS middleware to app.py (allow localhost only)
+- [X] T034 [US1] Add Jinja2Templates configuration pointing to templates/
+- [X] T035 [US1] Add StaticFiles mount for /static route
+- [X] T036 [US1] Implement `POST /analyze` endpoint in app.py - accept UploadFile, validate zip structure
+- [X] T037 [US1] Add file size validation (max 500MB) using FastAPI dependencies
+- [X] T037a [US1] Add SECURITY: Validate zip file before extraction - check for path traversal attacks (../ in entry names)
+- [X] T037b [US1] Add SECURITY: Reject zip entries with absolute paths (e.g., /etc/passwd, C:\Windows)
+- [X] T037c [US1] Add SECURITY: Scan zip for dangerous file types (no .exe, .dll, .so, .sh, .bat, .ps1)
+- [X] T037d [US1] Add SECURITY: Limit total extracted size (prevent zip bombs - max 1GB extracted)
+- [X] T037e [US1] Add SECURITY: Validate zip entry count (max 1000 files to prevent resource exhaustion)
+- [X] T038 [US1] Add zip structure validation: check for Level.sav at root or one level deep
+- [X] T039 [US1] Add Players/ folder validation: must exist with at least one .sav file
+- [X] T040 [US1] Return ErrorResponse with INVALID_STRUCTURE if validation fails
+- [X] T041 [US1] Create minimal `web_service/templates/index.html` with file upload form
+- [X] T042 [P] [US1] Add basic CSS in `web_service/static/styles.css` (dark theme, form styling)
+- [X] T043 [US1] Add JavaScript in `web_service/static/app.js` for file upload handling (fetch to /analyze)
 
 **Testing** (Optional - only if TDD requested):
 - [ ] T044 [P] [US1] Create `web_service/tests/test_api.py` with test_upload_valid_save()
@@ -157,20 +157,20 @@ Tasks are organized by **User Story** to enable independent, incremental develop
 
 **Tasks**:
 
-- [ ] T047 [US2] Update `POST /analyze` endpoint to call save_parser.extract_players() and return player list JSON
-- [ ] T048 [US2] Update index.html with dual-panel layout (CSS Grid: 2 columns)
-- [ ] T049 [US2] Add left panel table: Source Player (GUID, Name, Guild ID columns)
-- [ ] T050 [US2] Add right panel table: Target Player (GUID, Name, Guild ID columns)
-- [ ] T051 [P] [US2] Add search input above left panel in index.html
-- [ ] T052 [P] [US2] Add search input above right panel in index.html
-- [ ] T053 [US2] Update app.js to populate both tables from /analyze response
-- [ ] T054 [US2] Add row click handlers in app.js to track selected source GUID
-- [ ] T055 [US2] Add row click handlers in app.js to track selected target GUID
-- [ ] T056 [P] [US2] Implement search/filter logic in app.js for source table (filter by GUID/name/guild)
-- [ ] T057 [P] [US2] Implement search/filter logic in app.js for target table (filter by GUID/name/guild)
-- [ ] T058 [US2] Add selection highlighting CSS in styles.css (e.g., .selected row background color)
-- [ ] T059 [US2] Add table styling in styles.css (zebra striping, hover effects, dark theme colors)
-- [ ] T060 [US2] Update app.js to enable "Migrate" button only when both source and target selected
+- [X] T047 [US2] Update `POST /analyze` endpoint to call save_parser.extract_players() and return player list JSON
+- [X] T048 [US2] Update index.html with dual-panel layout (CSS Grid: 2 columns)
+- [X] T049 [US2] Add left panel table: Source Player (GUID, Name, Guild ID columns)
+- [X] T050 [US2] Add right panel table: Target Player (GUID, Name, Guild ID columns)
+- [X] T051 [P] [US2] Add search input above left panel in index.html
+- [X] T052 [P] [US2] Add search input above right panel in index.html
+- [X] T053 [US2] Update app.js to populate both tables from /analyze response
+- [X] T054 [US2] Add row click handlers in app.js to track selected source GUID
+- [X] T055 [US2] Add row click handlers in app.js to track selected target GUID
+- [X] T056 [P] [US2] Implement search/filter logic in app.js for source table (filter by GUID/name/guild)
+- [X] T057 [P] [US2] Implement search/filter logic in app.js for target table (filter by GUID/name/guild)
+- [X] T058 [US2] Add selection highlighting CSS in styles.css (e.g., .selected row background color)
+- [X] T059 [US2] Add table styling in styles.css (zebra striping, hover effects, dark theme colors)
+- [X] T060 [US2] Update app.js to enable "Migrate" button only when both source and target selected
 
 **Testing** (Optional):
 - [ ] T061 [P] [US2] Add test_analyze_returns_players() to test_api.py
@@ -196,19 +196,19 @@ Tasks are organized by **User Story** to enable independent, incremental develop
 
 **Tasks**:
 
-- [ ] T063 [US3] Add `MigrationRequest` Pydantic model to models.py
-- [ ] T064 [US3] Implement `POST /migrate` endpoint in app.py accepting file + source_guid + target_guid
-- [ ] T064a [US3] Add SECURITY: Reuse security validation from T037a-e before extracting in /migrate
-- [ ] T065 [US3] Extract uploaded zip to temp directory in /migrate handler using secure extraction helper
-- [ ] T066 [US3] Call core.migration.migrate_guids() with extracted folder path and GUIDs
-- [ ] T067 [US3] Handle migration errors: catch exceptions and return ErrorResponse with MIGRATION_FAILED
-- [ ] T068 [US3] Validate GUIDs exist in save before migration: return GUID_NOT_FOUND if missing
-- [ ] T069 [US3] Validate source_guid != target_guid: return DUPLICATE_GUID if same
-- [ ] T070 [US3] Create new zip archive from migrated folder in temp directory
-- [ ] T071 [US3] Add progress indicator overlay in index.html (spinner + "Migrating..." text)
-- [ ] T072 [US3] Update app.js to show progress indicator when "Migrate" button clicked
-- [ ] T073 [US3] Update app.js to call POST /migrate with FormData (file, source_guid, target_guid)
-- [ ] T074 [US3] Add error toast notification in index.html/app.js to display migration errors
+- [X] T063 [US3] Add `MigrationRequest` Pydantic model to models.py
+- [X] T064 [US3] Implement `POST /migrate` endpoint in app.py accepting file + source_guid + target_guid
+- [X] T064a [US3] Add SECURITY: Reuse security validation from T037a-e before extracting in /migrate
+- [X] T065 [US3] Extract uploaded zip to temp directory in /migrate handler using secure extraction helper
+- [X] T066 [US3] Call core.migration.migrate_guids() with extracted folder path and GUIDs
+- [X] T067 [US3] Handle migration errors: catch exceptions and return ErrorResponse with MIGRATION_FAILED
+- [X] T068 [US3] Validate GUIDs exist in save before migration: return GUID_NOT_FOUND if missing
+- [X] T069 [US3] Validate source_guid != target_guid: return DUPLICATE_GUID if same
+- [X] T070 [US3] Create new zip archive from migrated folder in temp directory
+- [X] T071 [US3] Add progress indicator overlay in index.html (spinner + "Migrating..." text)
+- [X] T072 [US3] Update app.js to show progress indicator when "Migrate" button clicked
+- [X] T073 [US3] Update app.js to call POST /migrate with FormData (file, source_guid, target_guid)
+- [X] T074 [US3] Add error toast notification in index.html/app.js to display migration errors
 
 **Testing** (Optional):
 - [ ] T075 [P] [US3] Add test_migrate_valid_guids() to test_api.py
@@ -234,14 +234,14 @@ Tasks are organized by **User Story** to enable independent, incremental develop
 
 **Tasks**:
 
-- [ ] T078 [US4] Update `POST /migrate` to return StreamingResponse with zip bytes
-- [ ] T079 [US4] Set Content-Disposition header to `attachment; filename="migrated.zip"`
-- [ ] T080 [US4] Set Content-Type header to `application/zip`
-- [ ] T081 [US4] Clean up temp directories after zip is sent
-- [ ] T082 [US4] Update app.js to handle blob response from /migrate
-- [ ] T083 [US4] Create download link in app.js and trigger click to download zip
-- [ ] T084 [US4] Add success toast notification in index.html/app.js with "Migration complete! Download starting..."
-- [ ] T085 [US4] Add instructions in success message: "Extract zip and replace your save folder"
+- [X] T078 [US4] Update `POST /migrate` to return StreamingResponse with zip bytes
+- [X] T079 [US4] Set Content-Disposition header to `attachment; filename="migrated.zip"`
+- [X] T080 [US4] Set Content-Type header to `application/zip`
+- [X] T081 [US4] Clean up temp directories after zip is sent
+- [X] T082 [US4] Update app.js to handle blob response from /migrate
+- [X] T083 [US4] Create download link in app.js and trigger click to download zip
+- [X] T084 [US4] Add success toast notification in index.html/app.js with "Migration complete! Download starting..."
+- [X] T085 [US4] Add instructions in success message: "Extract zip and replace your save folder"
 
 **Testing** (Optional):
 - [ ] T086 [P] [US4] Add test_migrate_returns_zip() to test_api.py
@@ -259,8 +259,8 @@ Tasks are organized by **User Story** to enable independent, incremental develop
 
 **Tasks**:
 
-- [ ] T088 Implement `GET /health` endpoint returning {"status": "ok", "version": "1.0.0"}
-- [ ] T089 Implement `GET /` endpoint serving index.html via Jinja2Templates
+- [X] T088 Implement `GET /health` endpoint returning {"status": "ok", "version": "1.0.0"}
+- [X] T089 Implement `GET /` endpoint serving index.html via Jinja2Templates
 - [ ] T090 [P] Add structured logging with loguru in app.py (log all requests, errors, migrations)
 - [ ] T091 [P] Add request ID tracking for debugging (middleware or dependency)
 - [ ] T092 [P] Improve error messages: add "What to do next" suggestions in ErrorResponse

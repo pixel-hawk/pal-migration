@@ -8,3 +8,37 @@ wheels/
 
 # Virtual environments
 .venv
+venv/
+env/
+
+# UV
+uv.lock
+
+# Temporary files and uploads
+*.tmp
+*.temp
+/temp/
+/tmp/
+web_service/uploads/
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# Test coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Temporary upload/processing directories
+web_service/temp/
+temp/
